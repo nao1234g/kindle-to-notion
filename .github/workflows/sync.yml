@@ -1,25 +1,31 @@
 name: Sync Kindle highlights
 
 on:
+  # data/ フォルダや My Clippings.txt を push したら自動実行
   push:
     paths:
       - 'My Clippings.txt'
-      - 'data/**'        # data フォルダ内に反応
-  workflow_dispatch:      # Actions から手動実行も可
+      - 'data/**'
+  # Actions 画面から手動で実行
+  workflow_dispatch:
+  # 毎日 12:00 JST（03:00 UTC）に自動実行
   schedule:
-    - cron: '0 3 * * *'   # 毎日 12:00 JST
+    - cron: '0 3 * * *'
 
 jobs:
   sync:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
 
       - name: Install dependencies
-        run: npm install
+        # devDependencies を含めて全部インストール
+        run: npm install --include=dev
 
       - name: Run sync script
         env:
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
-        run: npm run sync    # package.json の "sync" スクリプトを呼び出し
+        run: npm run sync
