@@ -1,0 +1,25 @@
+name: Sync Kindle highlights
+
+on:
+  push:
+    paths:
+      - 'My Clippings.txt'
+      - 'data/**'        # data フォルダ内に反応
+  workflow_dispatch:      # Actions から手動実行も可
+  schedule:
+    - cron: '0 3 * * *'   # 毎日 12:00 JST
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run sync script
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+        run: npm run sync    # package.json の "sync" スクリプトを呼び出し
