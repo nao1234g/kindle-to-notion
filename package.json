@@ -1,12 +1,12 @@
 {
   "name": "kindle-to-notion",
   "version": "1.0.0",
-  "type": "module",                 // ← そのまま ESM 運用
+  "type": "module",
   "scripts": {
     "start": "node dist/main.js",
     "build": "tsc",
     "dev": "tsc -w & nodemon -q -w dist dist/main.js",
-    "sync": "ts-node-esm --transpile-only src/main.ts"   // ★ 変更点
+    "sync": "ts-node-esm --transpile-only src/main.ts"
   },
   "dependencies": {
     "@notionhq/client": "^0.4.9",
@@ -21,7 +21,7 @@
     "nodemon": "^2.0.15",
     "ts-loader": "^9.2.6",
     "typescript": "^4.5.2",
-    "ts-node": "^10.9.2",          // ts-node 本体
+    "ts-node": "^10.9.2",
     "webpack": "^5.64.4",
     "webpack-cli": "^4.9.1",
     "webpack-dev-server": "^4.6.0"
