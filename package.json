@@ -6,7 +6,7 @@
     "start": "node dist/main.js",
     "build": "tsc",
     "dev": "tsc -w & nodemon -q -w dist dist/main.js",
-    "sync": "ts-node src/index.ts"
+    "sync": "ts-node src/main.ts"
   },
   "dependencies": {
     "@notionhq/client": "^0.4.9",
