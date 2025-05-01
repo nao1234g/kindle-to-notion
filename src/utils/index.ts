@@ -1,27 +1,29 @@
 /* -------------------------------------------------
  * utils バレルファイル
- *  - utils/common.ts で定義した I/O 系ヘルパーを再エクスポート
- *  - utils/notion.ts で定義した Notion API 用ビルダーを再エクスポート
+ *   - src/utils/common.ts      : I/O & Kindle ハイライト用ヘルパー
+ *   - src/utils/notion.ts      : Notion API ブロック生成ヘルパー
  * ------------------------------------------------- */
 
-// ---------- common ヘルパー ----------
+/* ---------- common 由来 ---------- */
 export {
-  /* 既存ロジック */
-  writeToFile,
-  readFromFile,
-  updateSync,
-  getUnsyncedHighlights,
-  formatAuthorName,
-
-  /* 追加: TXT / JSON 自動読み書き関連 */
+  // 基本 I/O
   readTxt,
   readJson,
   readAuto,
-  writeJson,
   writeTxt,
+  writeJson,
+
+  // 高レベル I/O ラッパー
+  writeToFile,
+  readFromFile,
+
+  // Kindle ハイライト同期ユーティリティ
+  updateSync,
+  getUnsyncedHighlights,
+  formatAuthorName,   // ★ parser で使用するため必ず再エクスポート
 } from "./common";
 
-// ---------- Notion ブロック生成 ----------
+/* ---------- Notion ブロック生成 ---------- */
 export {
   makeBlocks,
   makeHighlightsBlocks,
