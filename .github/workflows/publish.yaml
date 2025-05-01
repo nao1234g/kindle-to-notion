@@ -1,35 +1,21 @@
+# .github/workflows/publish.yaml
+# -----------------------------------------
 name: Create and publish the Docker image
 
-on: [push, workflow_dispatch]
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:  # 手動実行ボタンも一応残す
 
 jobs:
   build-and-push-image:
+    if: false          # ← ★ この 1 行で完全停止 ★
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Log in to the Container registry
-        uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v4
-        with:
-          images: ghcr.io/${{ github.repository }}
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v3
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+      - name: Skip build
+        run: echo "Docker build is disabled for this repository."
+# -----------------------------------------
