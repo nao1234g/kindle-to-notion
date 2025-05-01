@@ -1,0 +1,139 @@
+diff --git a/.env.example b/.env.example
+index 0000000..1111111 100644
+--- a/.env.example
++++ b/.env.example
+@@
+ NOTION_TOKEN=
+ BOOK_DB_ID=
++# Notion のタイトル列名（既定: Title）
++PROP_TITLE=Title
+diff --git a/package.json b/package.json
+index aaa1111..bbb2222 100644
+--- a/package.json
++++ b/package.json
+@@
+   "scripts": {
+-    "sync": "ts-node src/cli.ts"
++    "sync": "ts-node src/cli.ts",
++    "test": "jest",
++    "doctor": "sh scripts/doctor.sh"
+   },
+   "devDependencies": {
++    "@types/jest": "^29.5.4",
++    "jest": "^29.7.0",
++    "ts-jest": "^29.1.2",
+     "ts-node": "^10.9.2",
+     "typescript": "^5.4.0"
+   }
+ }
+diff --git a/src/config.ts b/src/config.ts
+index 2222222..3333333 100644
+--- a/src/config.ts
++++ b/src/config.ts
+@@
+ export const NOTION_TOKEN = process.env.NOTION_TOKEN ?? "";
+ export const BOOK_DB_ID  = process.env.BOOK_DB_ID  ?? "";
++export const PROP_TITLE  = process.env.PROP_TITLE  ?? "Title";
+diff --git a/src/notion/NotionAdapter.ts b/src/notion/NotionAdapter.ts
+index 4444444..5555555 100644
+--- a/src/notion/NotionAdapter.ts
++++ b/src/notion/NotionAdapter.ts
+@@
+-import { Client } from "@notionhq/client";
++import { Client } from "@notionhq/client";
++import { NOTION_TOKEN, BOOK_DB_ID, PROP_TITLE } from "../config";
+ 
+-const TITLE_PROP = "Name";   // ← 固定だった
++const TITLE_PROP = PROP_TITLE;   // ← env で可変
+ 
+ export class NotionAdapter {
+-  private client = new Client({ auth: process.env.NOTION_TOKEN });
++  private client: Client;
+ 
+-  constructor() {}
++  constructor() {
++    if (!NOTION_TOKEN) {
++      throw new Error("NOTION_TOKEN が未設定です");
++    }
++    this.client = new Client({ auth: NOTION_TOKEN });
++  }
+ 
+   async createPage(title: string, markdown: string): Promise<string> {
+     const page = await this.client.pages.create({
+       parent: { database_id: BOOK_DB_ID },
+       properties: {
+-        [TITLE_PROP]: { title: [{ text: { content: title } }] }
++        [TITLE_PROP]: { title: [{ text: { content: title } }] }
+       },
+       children: [
+         {
+diff --git a/scripts/doctor.sh b/scripts/doctor.sh
+index 6666666..7777777 100755
+--- a/scripts/doctor.sh
++++ b/scripts/doctor.sh
+@@
+ DB_JSON=$(curl -s -H "Authorization: Bearer $NOTION_TOKEN" \
+   -H "Notion-Version: 2022-06-28" \
+   https://api.notion.com/v1/databases/$BOOK_DB_ID)
+ 
+-echo "✅  Database reachable"
++echo "✅  Database reachable"
++
++# --- タイトル列存在チェック ------------------------------
++TITLE_KEY=${PROP_TITLE:-Title}
++if ! echo "$DB_JSON" | jq -e ".properties[\"$TITLE_KEY\"].type" >/dev/null; then
++  echo "❌ '$TITLE_KEY' 列が見つかりません"
++  exit 1
++fi
++echo "✅  '$TITLE_KEY' 列を確認"
+diff --git a/jest.config.js b/jest.config.js
+new file mode 100644
+index 0000000..8888888
+--- /dev/null
++++ b/jest.config.js
+@@
++module.exports = {
++  preset: "ts-jest",
++  testEnvironment: "node"
++};
+diff --git a/tests/notionAdapter.test.ts b/tests/notionAdapter.test.ts
+new file mode 100644
+index 0000000..9999999
+--- /dev/null
++++ b/tests/notionAdapter.test.ts
+@@
++import { PROP_TITLE } from "../src/config";
++
++describe("環境変数デフォルト", () => {
++  it("PROP_TITLE は既定で 'Title'", () => {
++    expect(PROP_TITLE).toBe("Title");
++  });
++});
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+new file mode 100644
+index 0000000..aaaaaaa
+--- /dev/null
++++ b/.github/workflows/ci.yml
+@@
++name: Node CI
++
++on:
++  push:
++    branches: [ master, main, fix/** ]
++  pull_request:
++
++jobs:
++  test:
++    runs-on: ubuntu-latest
++    strategy:
++      matrix:
++        node-version: [20.x]
++    steps:
++      - uses: actions/checkout@v4
++      - uses: actions/setup-node@v4
++        with:
++          node-version: ${{ matrix.node-version }}
++          cache: "npm"
++      - run: npm ci
++      - run: npm run build --if-present || true
++      - run: npm test
